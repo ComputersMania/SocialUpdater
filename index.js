@@ -22,10 +22,26 @@ if (storage.values().length == 0) {
 GoogleUrl = require('google-url')
 shortener = new GoogleUrl({"key" : secret.googleApiKey})
 
+// Loadinf fb and istancing it if enabled
+
+if (secret.facebookKey) {
+  FB = require('fb')
+  fb = new FB.facebook()
+  fb.setAccessToken(secret.facebookKey)
+}
+
 // Routine to post to social networks
 
 postEverywhere = function(item) {
-  console.log(item.title + ' ' + item.link)
+  console.log(item.title + ' ' + item.link),
+  // Post on facebook
+  if (fb) {
+
+  }
+  // Post on Twitter
+  if (secret.twitterKey) {
+
+  }
 }
 
 // function to confirm that the post isn't too old and hasn't been publicized yet
