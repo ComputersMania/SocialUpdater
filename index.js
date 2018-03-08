@@ -1,4 +1,5 @@
 config = require('./config.json')
+secret = require('./secret.json')
 
 // Loading rss-parser and creating an in instance of it
 
@@ -15,6 +16,11 @@ storage.initSync({dir: 'db'})
 if (storage.values().length == 0) {
   storage.setItemSync('history', [])
 }
+
+// Loading google-url and spawning an instance of it
+
+GoogleUrl = require('google-url')
+shortener = new GoogleUrl({"key" : secret.googleApiKey})
 
 // Routine to post to social networks
 

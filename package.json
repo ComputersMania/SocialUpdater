@@ -4,6 +4,7 @@
   "description": " A node js program to post feeds to your blog on socials every time the rss feed changes ",
   "main": "index.js",
   "dependencies": {
+    "google-url": "0.0.4",
     "node-persist": "^2.1.0",
     "rss-parser": "^3.1.1"
   },
