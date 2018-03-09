@@ -22,12 +22,18 @@ if (storage.values().length == 0) {
 GoogleUrl = require('google-url-2')
 shortener = new GoogleUrl({"key" : secret.googleApiKey})
 
-// Loadinf fb and istancing it if enabled
+// Loading fb and istancing it if enabled
 
 if (secret.facebookKey) {
   FB = require('fb')
   fb = new FB.facebook()
   fb.setAccessToken(secret.facebookKey)
+}
+
+// Loading Twitter and istancing it
+
+if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
+  Twitter = require('twitter')
 }
 
 // Custom campaign link builder
@@ -47,7 +53,7 @@ custom_campaign = (url, source, name='social') => {
 
 // Routine to post to social networks
 
-postEverywhere = function(item) {
+postEverywhere = (item) => {
   console.log(item.title + ' ' + item.link)
   // Post on facebook
   if (fb) {
@@ -61,15 +67,15 @@ postEverywhere = function(item) {
 
 // function to confirm that the post isn't too old and hasn't been publicized yet
 
-validate = function(item) {
+validate = (item) => {
   return (storage.getItemSync('history').indexOf(item.link) == -1)
 }
 
 // main function
 
-main = function() {
-  parser.parseURL(config.feedUrl).then(function(feed) {
-    feed.items.forEach(function(item) {
+main = () => {
+  parser.parseURL(config.feedUrl).then((feed) => {
+    feed.items.forEach((item) => {
       if (validate(item)) {
         postEverywhere(item)
         history = [item.link].concat(storage.getItemSync('history'))
