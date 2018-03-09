@@ -34,6 +34,11 @@ if (secret.facebookKey) {
 
 if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
   Twitter = require('twitter')
+  twitter = new Twitter({
+    consumer_key: secret.twitterSecret,
+    consumer_secret: secret.twitterSecret,
+    bearer_token: secret.twitterToken
+  })
 }
 
 // Custom campaign link builder
@@ -60,7 +65,7 @@ postEverywhere = (item) => {
 
   }
   // Post on Twitter
-  if (secret.twitterKey) {
+  if (twitter) {
 
   }
 }
