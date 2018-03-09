@@ -19,7 +19,7 @@ if (storage.values().length == 0) {
 
 // Loading google-url and spawning an instance of it
 
-GoogleUrl = require('google-url')
+GoogleUrl = require('google-url-2')
 shortener = new GoogleUrl({"key" : secret.googleApiKey})
 
 // Loadinf fb and istancing it if enabled
@@ -41,13 +41,17 @@ custom_campaign = (url, source, name='social') => {
   return url
 }
 
+// Function to post to facebook
+
+
+
 // Routine to post to social networks
 
 postEverywhere = function(item) {
-  console.log(item.title + ' ' + item.link),
+  console.log(item.title + ' ' + item.link)
   // Post on facebook
   if (fb) {
-    
+
   }
   // Post on Twitter
   if (secret.twitterKey) {
