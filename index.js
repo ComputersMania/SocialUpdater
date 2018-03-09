@@ -30,13 +30,24 @@ if (secret.facebookKey) {
   fb.setAccessToken(secret.facebookKey)
 }
 
+// Custom campaign link builder
+
+custom_campaign = (url, source, name='social') => {
+  url.concat('?')
+  if (source){
+    url.concat('utm_source=' + source + '&')
+  }
+  url.concat('utm_campaign=' + name)
+  return url
+}
+
 // Routine to post to social networks
 
 postEverywhere = function(item) {
   console.log(item.title + ' ' + item.link),
   // Post on facebook
   if (fb) {
-
+    
   }
   // Post on Twitter
   if (secret.twitterKey) {
