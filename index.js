@@ -30,6 +30,12 @@ if (secret.facebookKey) {
   fb.setAccessToken(secret.facebookKey)
 }
 
+// Function to post to facebook
+
+postFacebook = (item) => {
+
+}
+
 // Loading Twitter and istancing it
 
 if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
@@ -40,6 +46,16 @@ if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
     bearer_token: secret.twitterToken
   })
 }
+
+// Function to post to twitter
+
+postTwitter = (item) => {
+
+}
+
+// Loading instagram and spawning an instance
+
+Instangram = require('instagram')
 
 // Custom campaign link builder
 
@@ -52,20 +68,14 @@ custom_campaign = (url, source, name='social') => {
   return url
 }
 
-// Function to post to facebook
-
-
-
 // Routine to post to social networks
 
 postEverywhere = (item) => {
   console.log(item.title + ' ' + item.link)
   // Post on facebook
-  if (fb) {
-
-  }
+  if (fb) { postFacebook(item) }
   // Post on Twitter
-  if (twitter) {
+  if (twitter) { postTwitter(item) }
 
   }
 }
