@@ -1,3 +1,4 @@
 {
-  "feedUrl" : "https://webcodingmayhem.tk/atom.xml"
+  "feedUrl" : "https://webcodingmayhem.tk/atom.xml",
+  "GaCampaigns" : true
 }

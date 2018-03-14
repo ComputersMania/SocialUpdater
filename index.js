@@ -1,14 +1,14 @@
-config = require('./config.json')
-secret = require('./secret.json')
+const config = require('./config.json')
+const secret = require('./secret.json')
 
 // Loading rss-parser and creating an in instance of it
 
-Parser = require('rss-parser')
-parser = new Parser
+const Parser = require('rss-parser')
+let parser = new Parser
 
 // Loading db
 
-storage = require('node-persist')
+let storage = require('node-persist')
 storage.initSync({dir: 'db'})
 
 // Creating array on first boot
@@ -17,10 +17,20 @@ if (storage.values().length == 0) {
   storage.setItemSync('history', [])
 }
 
-// Loading google-url and spawning an instance of it
+// Loading gapi-url
 
-GoogleUrl = require('google-url-2')
-shortener = new GoogleUrl({"key" : secret.googleApiKey})
+const gapiUrl = require('gapi-url')
+
+// Custom campaign link builder
+
+let gaCampaign = (url, source, name='social') => {
+  url.concat('?')
+  if (source){
+    url.concat('utm_source=' + source + '&')
+  }
+  url.concat('utm_campaign=' + name)
+  return url
+}
 
 // Loading fb and istancing it if enabled
 
@@ -32,8 +42,13 @@ if (secret.facebookKey) {
 
 // Function to post to facebook
 
-postFacebook = (item) => {
-
+let postFacebook = (item) => {
+  if (config.GaCampaigns) {
+    link = gaCampaign(item.link)
+  }
+  if (secret.googleApiKey) {
+    link = gapiUrl.shortenURL()
+  }
 }
 
 // Loading Twitter and istancing it
@@ -49,46 +64,35 @@ if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
 
 // Function to post to twitter
 
-postTwitter = (item) => {
+let postTwitter = (item) => {
 
 }
 
 // Loading instagram and spawning an instance
 
-Instangram = require('instagram')
-
-// Custom campaign link builder
-
-custom_campaign = (url, source, name='social') => {
-  url.concat('?')
-  if (source){
-    url.concat('utm_source=' + source + '&')
-  }
-  url.concat('utm_campaign=' + name)
-  return url
+if (secret.instagramId && secret.instagramSecret) {
+  instangram = require('instagram')
 }
 
 // Routine to post to social networks
 
-postEverywhere = (item) => {
+let postEverywhere = (item) => {
   console.log(item.title + ' ' + item.link)
   // Post on facebook
-  if (fb) { postFacebook(item) }
+  // if (fb) { postFacebook(item) }
   // Post on Twitter
-  if (twitter) { postTwitter(item) }
-
-  }
+  // if (twitter) { postTwitter(item) }
 }
 
 // function to confirm that the post isn't too old and hasn't been publicized yet
 
-validate = (item) => {
+let validate = (item) => {
   return (storage.getItemSync('history').indexOf(item.link) == -1)
 }
 
 // main function
 
-main = () => {
+let main = () => {
   parser.parseURL(config.feedUrl).then((feed) => {
     feed.items.forEach((item) => {
       if (validate(item)) {
