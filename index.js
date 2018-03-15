@@ -17,9 +17,25 @@ if (storage.values().length == 0) {
   storage.setItemSync('history', [])
 }
 
-// Loading gapi-url
+// Creating shorten function
 
-const gapiUrl = require('gapi-url')
+const {promisify} = require('util')
+const {google} = require('googleapis')
+
+const urlshortener =  google.urlshortener('v1')
+
+// I like promises
+
+const shortenerpromise = promisify(urlshortener.url.insert)
+
+let shorten = (link) => {
+  return shortenerpromise({
+    key: secret.googleApiKey,
+    resource: {
+      longUrl: link
+    }
+  })
+}
 
 // Custom campaign link builder
 
@@ -42,13 +58,14 @@ if (secret.facebookKey) {
 
 // Function to post to facebook
 
-let postFacebook = (item) => {
+let postFacebook = async (item) => {
   if (config.GaCampaigns) {
-    link = gaCampaign(item.link)
+    link = gaCampaign(item.link, 'config.facebookSource')
   }
   if (secret.googleApiKey) {
-    link = gapiUrl.shortenURL()
+    link = await gapiUrl.shortenURL()
   }
+  
 }
 
 // Loading Twitter and istancing it
