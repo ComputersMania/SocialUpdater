@@ -23,22 +23,25 @@ if (storage.values().length == 0) {
 
 // Creating shorten function
 
-const {google} = require('googleapis')
+if (typeof process.env.GOOGLE_API_KEY !== 'undefined') {
 
-const urlshortener =  google.urlshortener('v1')
+  const {google} = require('googleapis')
 
-// I like promises
+  const urlshortener =  google.urlshortener('v1')
 
-const shortenerpromise = promisify(urlshortener.url.insert)
+  // I like promises
 
-let shorten = async (link) => {
-  let item = await shortenerpromise({
-    key: secret.googleApiKey,
-    resource: {
-      longUrl: link
-    }
-  })
-  return item.data.id
+  const shortenerpromise = promisify(urlshortener.url.insert)
+
+  var shorten = async (link) => {
+    let item = await shortenerpromise({
+      key: env.GOOGLE_API_KEY,
+      resource: {
+        longUrl: link
+      }
+    })
+    return item.data.id
+  }
 }
 
 // Custom campaign link builder
@@ -52,7 +55,7 @@ let gaCampaign = (url, source, name='social') => {
   return url
 }
 
-// Loading fb and istancing it if enabled
+// Loading fb and istancing it if enabled WORK IN PROGRESS
 
 if (secret.facebookId && secret.facebookKey && secret.facebookToken) {
   const FB = require('fb')
@@ -71,7 +74,7 @@ if (typeof(fb) !== 'undefined') {
     if (config.GaCampaigns) {
       link = gaCampaign(link, config.facebookSource)
     }
-    if (secret.googleApiKey) {
+    if (shortener) {
       link = await shorten(link)
     }
 
@@ -103,8 +106,9 @@ if (secret.instagramId && secret.instagramSecret) {
 
 // function to confirm that the post isn't too old and hasn't been publicized yet
 
-let validate = (item) => {
-  return (storage.getItemSync('history').indexOf(item.link) == -1)
+let validate = async (item) => {
+  let history = await storage.getItem('history')
+  return (history.indexOf(item.link) == -1)
 }
 
 // main function
@@ -112,13 +116,15 @@ let validate = (item) => {
 let main = () => {
   parser.parseURL(config.feedUrl).then((feed) => {
     feed.items.forEach((item) => {
-      if (validate(item)) {
-        shorten(item.link).then()
-        if ( typeof(fb) !== 'undefined' ) { postFacebook(item) }
-        if ( typeof(twitter) !== 'undefined' ) { postTwitter(item) }
-        history = [item.link].concat(storage.getItemSync('history'))
-        //storage.setItemSync('history', history)
-      }
+      validate(item).then( (valid) => {
+        if (valid) {
+          if ( typeof(fb) !== 'undefined' ) { postFacebook(item) }
+          if ( typeof(twitter) !== 'undefined' ) { postTwitter(item) }
+          if (typeof shorten !== 'undefined') {console.log(item)} // Just as a demostration/Will be removed soon
+          history = [item.link].concat(storage.getItemSync('history'))
+          storage.setItemSync('history', history)
+        }
+      })
     })
   })
 }
