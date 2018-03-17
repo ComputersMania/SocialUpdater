@@ -1,6 +1,10 @@
 const config = require('./config.json')
 const secret = require('./secret.json')
 
+// Cool function I need it
+
+const {promisify} = require('util')
+
 // Loading rss-parser and creating an in instance of it
 
 const Parser = require('rss-parser')
@@ -19,7 +23,6 @@ if (storage.values().length == 0) {
 
 // Creating shorten function
 
-const {promisify} = require('util')
 const {google} = require('googleapis')
 
 const urlshortener =  google.urlshortener('v1')
@@ -28,44 +31,51 @@ const urlshortener =  google.urlshortener('v1')
 
 const shortenerpromise = promisify(urlshortener.url.insert)
 
-let shorten = (link) => {
-  return shortenerpromise({
+let shorten = async (link) => {
+  let item = await shortenerpromise({
     key: secret.googleApiKey,
     resource: {
       longUrl: link
     }
   })
+  return item.data.id
 }
 
 // Custom campaign link builder
 
 let gaCampaign = (url, source, name='social') => {
-  url.concat('?')
+  url = url.concat('?')
   if (source){
-    url.concat('utm_source=' + source + '&')
+    url = url.concat('utm_source=' + source + '&')
   }
-  url.concat('utm_campaign=' + name)
+  url = url.concat('utm_campaign=' + name)
   return url
 }
 
 // Loading fb and istancing it if enabled
 
-if (secret.facebookKey) {
-  FB = require('fb')
-  fb = new FB.facebook()
-  fb.setAccessToken(secret.facebookKey)
+if (secret.facebookId && secret.facebookKey && secret.facebookToken) {
+  const FB = require('fb')
+  let fb = new FB.Facebook({
+    appID: secret.facebookId,
+    secret: secret.facebookKey
+  })
+  fb.setAccessToken(secret.facebookToken)
 }
 
 // Function to post to facebook
 
-let postFacebook = async (item) => {
-  if (config.GaCampaigns) {
-    link = gaCampaign(item.link, 'config.facebookSource')
+if (typeof(fb) !== 'undefined') {
+  let postFacebook = async (item) => {
+    let link = item.link
+    if (config.GaCampaigns) {
+      link = gaCampaign(link, config.facebookSource)
+    }
+    if (secret.googleApiKey) {
+      link = await shorten(link)
+    }
+
   }
-  if (secret.googleApiKey) {
-    link = await gapiUrl.shortenURL()
-  }
-  
 }
 
 // Loading Twitter and istancing it
@@ -91,16 +101,6 @@ if (secret.instagramId && secret.instagramSecret) {
   instangram = require('instagram')
 }
 
-// Routine to post to social networks
-
-let postEverywhere = (item) => {
-  console.log(item.title + ' ' + item.link)
-  // Post on facebook
-  // if (fb) { postFacebook(item) }
-  // Post on Twitter
-  // if (twitter) { postTwitter(item) }
-}
-
 // function to confirm that the post isn't too old and hasn't been publicized yet
 
 let validate = (item) => {
@@ -113,9 +113,11 @@ let main = () => {
   parser.parseURL(config.feedUrl).then((feed) => {
     feed.items.forEach((item) => {
       if (validate(item)) {
-        postEverywhere(item)
+        shorten(item.link).then()
+        if ( typeof(fb) !== 'undefined' ) { postFacebook(item) }
+        if ( typeof(twitter) !== 'undefined' ) { postTwitter(item) }
         history = [item.link].concat(storage.getItemSync('history'))
-        storage.setItemSync('history', history)
+        //storage.setItemSync('history', history)
       }
     })
   })
