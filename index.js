@@ -28,8 +28,8 @@ if (typeof process.env.GOOGLE_API_KEY !== 'undefined') {
   // Async function that returns shortened link
   var shorten = async (link) => {
     try {
-      let item = await shortenerpromise({
-        key: env.GOOGLE_API_KEY,
+      var item = await shortenerpromise({
+        key: process.env.GOOGLE_API_KEY,
         resource: {
           longUrl: link
         }
