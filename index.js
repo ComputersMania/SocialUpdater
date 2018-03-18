@@ -1,51 +1,51 @@
 const config = require('./config.json')
 const secret = require('./secret.json')
 
-// Cool function I need it
-
+// Utility I need very often
 const {promisify} = require('util')
 
-// Loading rss-parser and creating an in instance of it
-
+// Load rss-parser and instance it
 const Parser = require('rss-parser')
 let parser = new Parser
 
-// Loading db
-
+// Create a db using node-persist
 let storage = require('node-persist')
 storage.initSync({dir: 'db'})
 
-// Creating array on first boot
-
+// Populate the db with an empty array on first on first boot
 if (storage.values().length == 0) {
   storage.setItemSync('history', [])
 }
 
-// Creating shorten function
-
+// Check if Google api key is set
 if (typeof process.env.GOOGLE_API_KEY !== 'undefined') {
 
+  // Load googleapis
   const {google} = require('googleapis')
 
+  // Load the urlshorten google api endpoint
   const urlshortener =  google.urlshortener('v1')
 
-  // I like promises
-
+  // Create a promise from it
   const shortenerpromise = promisify(urlshortener.url.insert)
 
+  // Async function that returns shortened link
   var shorten = async (link) => {
-    let item = await shortenerpromise({
-      key: env.GOOGLE_API_KEY,
-      resource: {
-        longUrl: link
-      }
-    })
+    try {
+      let item = await shortenerpromise({
+        key: env.GOOGLE_API_KEY,
+        resource: {
+          longUrl: link
+        }
+      })
+    } catch(err) {
+      throw err
+    }
     return item.data.id
   }
 }
 
-// Custom campaign link builder
-
+// Custom campaign link builder function
 let gaCampaign = (url, source, name='social') => {
   url = url.concat('?')
   if (source){
@@ -56,7 +56,6 @@ let gaCampaign = (url, source, name='social') => {
 }
 
 // Loading fb and istancing it if enabled WORK IN PROGRESS
-
 if (secret.facebookId && secret.facebookKey && secret.facebookToken) {
   const FB = require('fb')
   let fb = new FB.Facebook({
@@ -67,7 +66,6 @@ if (secret.facebookId && secret.facebookKey && secret.facebookToken) {
 }
 
 // Function to post to facebook
-
 if (typeof(fb) !== 'undefined') {
   let postFacebook = async (item) => {
     let link = item.link
@@ -75,14 +73,17 @@ if (typeof(fb) !== 'undefined') {
       link = gaCampaign(link, config.facebookSource)
     }
     if (shortener) {
-      link = await shorten(link)
+      try {
+        link = await shorten(link)
+      } catch(err) {
+        console.error(err)
+      }
     }
 
   }
 }
 
 // Loading Twitter and istancing it
-
 if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
   Twitter = require('twitter')
   twitter = new Twitter({
@@ -93,13 +94,11 @@ if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
 }
 
 // Function to post to twitter
-
 let postTwitter = (item) => {
 
 }
 
 // Loading instagram and spawning an instance
-
 if (secret.instagramId && secret.instagramSecret) {
   instangram = require('instagram')
 }
@@ -112,25 +111,30 @@ let validate = async (item) => {
 }
 
 // main function
-
 let main = () => {
-  parser.parseURL(config.feedUrl).then((feed) => {
-    feed.items.forEach((item) => {
-      validate(item).then( (valid) => {
-        if (valid) {
-          if ( typeof(fb) !== 'undefined' ) { postFacebook(item) }
-          if ( typeof(twitter) !== 'undefined' ) { postTwitter(item) }
-          if (typeof shorten !== 'undefined') {console.log(item)} // Just as a demostration/Will be removed soon
-          history = [item.link].concat(storage.getItemSync('history'))
-          storage.setItemSync('history', history)
-        }
+  parser.parseURL(config.feedUrl)
+    .then((feed) => {
+      feed.items.forEach( item => {
+        validate(item).then( (valid) => {
+          if (valid) {
+            if ( typeof(fb) !== 'undefined' ) { postFacebook(item) }
+            if ( typeof(twitter) !== 'undefined' ) { postTwitter(item) }
+            if (typeof shorten !== 'undefined') {
+              try {
+                shorten(item.link).then(console.log)} // Just as a demostration/Will be removed soon
+              } catch(err) {
+                console.error(err)
+              }
+            history = [item.link].concat(storage.getItemSync('history'))
+            storage.setItemSync('history', history)
+          }
+        })
       })
     })
-  })
+    .catch( err => console.log(err) )
 }
 
 // autorun on load
-
 main()
 
 // exposing a webhook to trigger main
