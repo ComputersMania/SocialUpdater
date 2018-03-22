@@ -19,7 +19,6 @@ if (storage.values().length == 0) {
 
 // Check if Google api key is set
 if (typeof process.env.GOOGLE_API_KEY !== 'undefined') {
-<<<<<<< HEAD
 
   // Load googleapis
   const {google} = require('googleapis')
@@ -30,14 +29,6 @@ if (typeof process.env.GOOGLE_API_KEY !== 'undefined') {
   // Create a promise from it
   const shortenerpromise = promisify(urlshortener.url.insert)
 
-=======
-  // Load googleapis
-  const {google} = require('googleapis')
-  // Load the urlshorten google api endpoint
-  const urlshortener =  google.urlshortener('v1')
-  // Create a promise from it
-  const shortenerpromise = promisify(urlshortener.url.insert)
->>>>>>> 43b9252498de6b9257874a5eaf4f28e8177b7e79
   // Async function that returns shortened link
   var shorten = async (link) => {
     try {
@@ -52,10 +43,7 @@ if (typeof process.env.GOOGLE_API_KEY !== 'undefined') {
     }
     return item.data.id
   }
-<<<<<<< HEAD
   console.log('Google shortner enabled')
-=======
->>>>>>> 43b9252498de6b9257874a5eaf4f28e8177b7e79
 }
 
 // Custom campaign link builder function
@@ -94,12 +82,10 @@ if (typeof(fb) !== 'undefined') {
     }
 
   }
-<<<<<<< HEAD
 
 }
 
 // Loading Twitter and istancing it
-
 if (typeof process.env.TWITTER_KEY !== 'undefined') {
   const Twitter = require('twitter')
   let twitter = new Twitter({
@@ -107,18 +93,9 @@ if (typeof process.env.TWITTER_KEY !== 'undefined') {
     consumer_secret: process.env.TWITTER_SECRET,
     access_token_key: process.env.TWITTER_TOKEN_KEY,
     access_token_secret: process.env.TWITTER_TOKEN_SECRET
-=======
-}
-
-// Loading Twitter and istancing it
-if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
-  Twitter = require('twitter')
-  twitter = new Twitter({
-    consumer_key: secret.twitterSecret,
-    consumer_secret: secret.twitterSecret,
-    bearer_token: secret.twitterToken
->>>>>>> 43b9252498de6b9257874a5eaf4f28e8177b7e79
   })
+
+  //Function to post
   var postTwitter = (item) => {
     status = 'A new post about ' + item.title + '. Read it here ' + item.link
     twitter.post('statuses/update', {
@@ -126,15 +103,6 @@ if (secret.twitterKey && secret.twitterSecret && secret.twitterToken) {
     })
   }
 }
-
-// Function to post to twitter
-<<<<<<< HEAD
-
-=======
-let postTwitter = (item) => {
-
-}
->>>>>>> 43b9252498de6b9257874a5eaf4f28e8177b7e79
 
 // Loading instagram and spawning an instance
 if (secret.instagramId && secret.instagramSecret) {
@@ -150,34 +118,12 @@ let validate = async (item) => {
   let now = new Date()
   let elapsed = now.getTime() - pubDate.getTime()
 
-<<<<<<< HEAD
-let postEverywhere = (item) => {
-  console.log(item.title + ' ' + item.link)
-  // Post on facebook
-  // if (fb) { postFacebook(item) }
-  // Post on Twitter
-  if (typeof postTwitter) { postTwitter(item) }
-}
-
-// function to confirm that the post isn't too old and hasn't been publicized yet
-
-let validate = async (item) => {
-  // Load the array of previously posted items
-  let history = await storage.getItem('history')
-  //  Check time elapsed from pubblication
-  let pubDate = new Date(item.pubDate)
-  let now = new Date()
-  let elapsed = now.getTime() - pubDate.getTime()
-  // Returns True if the item is good
-=======
->>>>>>> 43b9252498de6b9257874a5eaf4f28e8177b7e79
   return (history.indexOf(item.link) == -1 && elapsed < 1000*24*60*60)
 }
 
 // main function
 let main = () => {
   parser.parseURL(config.feedUrl)
-<<<<<<< HEAD
   .then( feed => {
     feed.items.forEach((item) => {
       validate(item).then( valid => { if (valid) {
@@ -190,28 +136,6 @@ let main = () => {
     })})
   })
   .catch(error => console.log(error) )
-=======
-    .then((feed) => {
-      feed.items.forEach( item => {
-        validate(item).then( (valid) => {
-          if (valid) {
-            if ( typeof(fb) !== 'undefined' ) { postFacebook(item) }
-            if ( typeof(twitter) !== 'undefined' ) { postTwitter(item) }
-            if (typeof shorten !== 'undefined') {
-              try {
-                shorten(item.link).then(console.log) // Just as a demostration/Will be removed soon
-              } catch(err) {
-                console.error(err)
-              }
-            }
-            history = [item.link].concat(storage.getItemSync('history'))
-            storage.setItemSync('history', history)
-          }
-        })
-      })
-    })
-    .catch( err => console.log(err) )
->>>>>>> 43b9252498de6b9257874a5eaf4f28e8177b7e79
 }
 
 // autorun on load
