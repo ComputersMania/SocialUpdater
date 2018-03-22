@@ -1,4 +1,5 @@
 {
   "feedUrl" : "https://webcodingmayhem.tk/atom.xml",
-  "GaCampaigns" : true
+  "GaCampaigns" : true,
+  "facebookSource" : "facebook"
 }
